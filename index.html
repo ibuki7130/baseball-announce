@@ -1,0 +1,1448 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚾ ボーイズリーグ アナウンスシステム</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Bebas+Neue&display=swap');
+
+:root {
+  --navy: #081428;
+  --navy2: #0d1e38;
+  --navy3: #142850;
+  --gold: #f0b429;
+  --gold2: #d99e20;
+  --red: #c0392b;
+  --green: #1a8a50;
+  --blue: #2471a3;
+  --white: #eef2ff;
+  --gray: #6b85a0;
+  --lgray: #a0b4c8;
+  --border: rgba(240,180,41,0.2);
+  --card: rgba(255,255,255,0.04);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--navy);
+  color: var(--white);
+  min-height: 100vh;
+  background-image:
+    radial-gradient(ellipse 60% 40% at 5% 5%, rgba(240,180,41,0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 50% at 95% 95%, rgba(192,57,43,0.06) 0%, transparent 70%);
+}
+
+header {
+  background: linear-gradient(90deg, var(--navy2), #0c1d3a);
+  border-bottom: 2px solid var(--gold);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+  position: sticky; top: 0; z-index: 200;
+}
+
+.header-left { display: flex; align-items: center; gap: 12px; }
+header h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.6rem; letter-spacing: 4px; color: var(--gold);
+  text-shadow: 0 0 20px rgba(240,180,41,0.5); line-height: 1;
+}
+.header-sub { font-size: 0.68rem; color: var(--gray); letter-spacing: 2px; margin-top: 2px; }
+.team-badges { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.team-badge {
+  font-size: 0.75rem; font-weight: 700;
+  background: rgba(240,180,41,0.1); border: 1px solid var(--border);
+  padding: 3px 12px; border-radius: 20px; color: var(--gold); letter-spacing: 1px;
+}
+.team-badge.opp { background: rgba(192,57,43,0.1); border-color: rgba(192,57,43,0.3); color: #e74c3c; }
+
+nav {
+  display: flex; gap: 2px; padding: 8px 20px;
+  background: var(--navy2); border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+nav::-webkit-scrollbar { height: 3px; }
+nav::-webkit-scrollbar-thumb { background: var(--border); }
+
+.nav-btn {
+  background: transparent; border: 1px solid transparent; color: var(--gray);
+  padding: 7px 14px; border-radius: 6px; cursor: pointer;
+  font-family: 'Noto Sans JP', sans-serif; font-size: 0.78rem; font-weight: 700;
+  letter-spacing: 0.5px; white-space: nowrap; transition: all 0.2s;
+}
+.nav-btn.active { background: var(--gold); color: var(--navy); border-color: var(--gold); }
+.nav-btn:hover:not(.active) { border-color: var(--gold); color: var(--gold); }
+
+.container { padding: 18px 20px; max-width: 980px; margin: 0 auto; }
+.page { display: none; animation: fadeUp 0.25s ease; }
+.page.active { display: block; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+.section-title {
+  font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem;
+  letter-spacing: 4px; color: var(--gold); margin-bottom: 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+.section-title::after { content:''; flex:1; height:1px; background: linear-gradient(to right, var(--border), transparent); }
+
+.card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 18px; margin-bottom: 12px;
+}
+.card-title {
+  font-size: 0.75rem; color: var(--gold); font-weight: 700;
+  letter-spacing: 2px; margin-bottom: 14px;
+}
+
+.form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 10px; margin-bottom: 10px; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+label { font-size: 0.7rem; color: var(--gray); letter-spacing: 1px; font-weight: 700; }
+
+input, select, textarea {
+  background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+  border-radius: 6px; padding: 8px 10px; color: var(--white);
+  font-family: 'Noto Sans JP', sans-serif; font-size: 0.85rem;
+  transition: border-color 0.2s; width: 100%;
+}
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--gold); background: rgba(240,180,41,0.05); }
+select option { background: #0d1e38; }
+
+.btn {
+  padding: 8px 16px; border-radius: 7px; border: none; cursor: pointer;
+  font-family: 'Noto Sans JP', sans-serif; font-weight: 700; font-size: 0.82rem;
+  transition: all 0.2s; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 5px;
+}
+.btn-gold { background: var(--gold); color: var(--navy); }
+.btn-gold:hover { background: var(--gold2); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(240,180,41,0.3); }
+.btn-outline { background: transparent; color: var(--gold); border: 1px solid var(--gold); }
+.btn-outline:hover { background: rgba(240,180,41,0.1); }
+.btn-red { background: var(--red); color:#fff; padding:5px 10px; font-size:0.75rem; }
+.btn-red:hover { background: #a93226; }
+.btn-blue { background: var(--blue); color:#fff; }
+.btn-blue:hover { background: #1a5276; }
+.btn-sm { padding: 5px 12px; font-size: 0.75rem; }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+
+/* ANNOUNCE BOX */
+.announce-box {
+  background: linear-gradient(135deg, #0a1628, #091525);
+  border: 2px solid var(--gold); border-radius: 14px; padding: 22px;
+  margin-top: 14px; position: relative; overflow: hidden;
+}
+.announce-box::before {
+  content: '📢'; position: absolute; top: -8px; right: 16px;
+  font-size: 3.5rem; opacity: 0.05;
+}
+.announce-label { font-size: 0.68rem; color: var(--gold); letter-spacing: 3px; font-weight: 700; margin-bottom: 10px; }
+.announce-text {
+  font-size: 1.02rem; line-height: 2.1; font-weight: 500;
+  white-space: pre-wrap; word-break: break-all;
+  border-left: 3px solid var(--gold); padding-left: 14px;
+}
+.announce-note {
+  font-size: 0.75rem; color: var(--gray); margin-top: 10px;
+  padding: 8px 12px; background: rgba(255,255,255,0.04);
+  border-radius: 6px; border-left: 2px solid var(--gray);
+  line-height: 1.7;
+}
+
+/* PLAYER LIST */
+.player-table { width: 100%; border-collapse: collapse; }
+.player-table th {
+  font-size: 0.7rem; color: var(--gray); padding: 6px 10px;
+  text-align: left; border-bottom: 1px solid var(--border);
+  letter-spacing: 1px;
+}
+.player-table td { padding: 8px 10px; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.player-table tr:hover td { background: rgba(255,255,255,0.03); }
+.num-cell { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; color: var(--gold); }
+
+/* LINEUP */
+.lineup-row {
+  display: grid; grid-template-columns: 28px 1fr 1fr 1fr 80px; gap: 6px;
+  align-items: center; padding: 8px 10px; border-radius: 7px;
+  border: 1px solid rgba(255,255,255,0.07); margin-bottom: 5px;
+  background: rgba(255,255,255,0.02);
+}
+.lineup-order-num { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; color: var(--gray); text-align: center; }
+.lineup-row.set { border-color: rgba(240,180,41,0.3); background: rgba(240,180,41,0.04); }
+
+/* TABS */
+.tab-row { display: flex; gap: 4px; margin-bottom: 14px; flex-wrap: wrap; }
+.tab-btn {
+  background: transparent; border: 1px solid var(--border); color: var(--gray);
+  padding: 6px 14px; border-radius: 6px; cursor: pointer;
+  font-family: 'Noto Sans JP', sans-serif; font-size: 0.77rem; font-weight: 700; transition: all 0.2s;
+}
+.tab-btn.active { background: rgba(240,180,41,0.13); border-color: var(--gold); color: var(--gold); }
+
+/* SCORE */
+.scoreboard {
+  display: grid; grid-template-columns: 1fr 60px 1fr; gap: 12px;
+  align-items: center; text-align: center; margin-bottom: 16px;
+}
+.score-name { font-size: 0.8rem; color: var(--gray); font-weight: 700; margin-bottom: 4px; }
+.score-num { font-family: 'Bebas Neue', sans-serif; font-size: 3.8rem; color: var(--gold); text-shadow: 0 0 25px rgba(240,180,41,0.4); line-height: 1; }
+.score-vs { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; color: var(--gray); }
+.inning-info { text-align: center; font-size: 0.9rem; color: var(--lgray); font-weight: 700; margin-bottom: 14px; letter-spacing: 1px; }
+
+/* PITCH COUNT */
+.pitch-card { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.pitch-box {
+  background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px; text-align: center;
+}
+.pitch-label { font-size: 0.68rem; color: var(--gray); letter-spacing: 1px; margin-bottom: 4px; }
+.pitch-count { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; color: var(--gold); line-height: 1; }
+
+/* LOG */
+.log-list { display: flex; flex-direction: column; gap: 5px; max-height: 250px; overflow-y: auto; }
+.log-item { font-size: 0.78rem; padding: 7px 10px; border-radius: 5px; background: rgba(255,255,255,0.03); border-left: 3px solid var(--border); color: var(--lgray); line-height: 1.6; }
+.log-item.hi { border-left-color: var(--gold); color: var(--white); }
+
+/* ALERT */
+.alert { padding: 9px 13px; border-radius: 7px; font-size: 0.82rem; margin-bottom: 12px; line-height: 1.6; }
+.alert-gold { background: rgba(240,180,41,0.1); border: 1px solid rgba(240,180,41,0.3); color: var(--gold); }
+.alert-green { background: rgba(26,138,80,0.1); border: 1px solid rgba(26,138,80,0.3); color: #2ecc71; }
+.alert-red { background: rgba(192,57,43,0.1); border: 1px solid rgba(192,57,43,0.3); color: #e74c3c; }
+
+.empty-msg { text-align: center; color: var(--gray); padding: 24px; font-size: 0.85rem; }
+
+/* QUICK ANNOUNCE BUTTONS */
+.quick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+.quick-btn {
+  background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px 14px; cursor: pointer;
+  font-family: 'Noto Sans JP', sans-serif; font-size: 0.82rem; font-weight: 700;
+  color: var(--lgray); text-align: left; transition: all 0.2s; line-height: 1.5;
+}
+.quick-btn:hover { border-color: var(--gold); color: var(--white); background: rgba(240,180,41,0.07); }
+.quick-btn .qlabel { font-size: 0.65rem; color: var(--gold); letter-spacing: 1px; margin-bottom: 4px; }
+
+.copied-toast {
+  position: fixed; bottom: 20px; right: 20px;
+  background: var(--green); color: #fff; padding: 10px 18px;
+  border-radius: 8px; font-weight: 700; font-size: 0.82rem;
+  z-index: 9999; opacity: 0; transform: translateY(10px); transition: all 0.3s; pointer-events: none;
+}
+.copied-toast.show { opacity: 1; transform: translateY(0); }
+
+.divider { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+.badge { display: inline-block; font-size: 0.65rem; padding: 2px 8px; border-radius: 20px; font-weight: 700; letter-spacing: 1px; }
+.badge-gold { background: rgba(240,180,41,0.2); color: var(--gold); border: 1px solid rgba(240,180,41,0.4); }
+.badge-green { background: rgba(26,138,80,0.2); color: #2ecc71; border: 1px solid rgba(26,138,80,0.4); }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <span style="font-size:1.6rem">⚾</span>
+    <div>
+      <h1>BOYS LEAGUE ANNOUNCE</h1>
+      <div class="header-sub">公式アナウンスマニュアル準拠 ver.2025</div>
+    </div>
+  </div>
+  <div class="team-badges">
+    <div class="team-badge" id="hdr-my">自チーム未設定</div>
+    <div style="color:var(--gray);font-size:0.8rem">vs</div>
+    <div class="team-badge opp" id="hdr-opp">相手未設定</div>
+  </div>
+</header>
+
+<nav>
+  <button class="nav-btn active" onclick="showPage('setup')" id="nav-setup">⚙️ 試合設定</button>
+  <button class="nav-btn" onclick="showPage('roster')" id="nav-roster">👥 選手登録</button>
+  <button class="nav-btn" onclick="showPage('prestart')" id="nav-prestart">🔔 試合前</button>
+  <button class="nav-btn" onclick="showPage('lineup')" id="nav-lineup">📋 スタメン発表</button>
+  <button class="nav-btn" onclick="showPage('game')" id="nav-game">⚾ 試合中</button>
+  <button class="nav-btn" onclick="showPage('change')" id="nav-change">🔄 選手交代</button>
+  <button class="nav-btn" onclick="showPage('score')" id="nav-score">🏟️ 得点・終了</button>
+  <button class="nav-btn" onclick="showPage('misc')" id="nav-misc">📢 各種お知らせ</button>
+</nav>
+
+<div class="container">
+
+<!-- ===== 試合設定 ===== -->
+<div class="page active" id="page-setup">
+  <div class="section-title">⚙️ 試合設定</div>
+  <div class="card">
+    <div class="card-title">🏟️ 試合情報</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>大会正式名称</label>
+        <input id="s_tournament" placeholder="例：第○○回 全国ボーイズリーグ大会" oninput="saveSetup()">
+      </div>
+      <div class="form-group">
+        <label>第○試合</label>
+        <input id="s_gameNum" type="number" value="1" min="1" oninput="saveSetup()">
+      </div>
+      <div class="form-group">
+        <label>○回戦</label>
+        <select id="s_round" onchange="saveSetup()">
+          <option value="1回戦">1回戦</option>
+          <option value="2回戦">2回戦</option>
+          <option value="3回戦">3回戦</option>
+          <option value="準々決勝">準々決勝</option>
+          <option value="準決勝">準決勝</option>
+          <option value="決勝戦">決勝戦</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>先攻チーム（塁側）</label>
+        <input id="s_firstTeam" placeholder="例：○○ボーイズ" oninput="saveSetup()">
+      </div>
+      <div class="form-group">
+        <label>先攻 塁側</label>
+        <select id="s_firstSide" onchange="saveSetup()">
+          <option value="1塁側">1塁側</option>
+          <option value="3塁側">3塁側</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>後攻チーム（塁側）</label>
+        <input id="s_secondTeam" placeholder="例：△△ボーイズ" oninput="saveSetup()">
+      </div>
+      <div class="form-group">
+        <label>後攻 塁側</label>
+        <select id="s_secondSide" onchange="saveSetup()">
+          <option value="3塁側">3塁側</option>
+          <option value="1塁側">1塁側</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>試合日</label>
+        <input type="date" id="s_date" oninput="saveSetup()">
+      </div>
+      <div class="form-group">
+        <label>会場名</label>
+        <input id="s_venue" placeholder="例：○○球場" oninput="saveSetup()">
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">⚖️ 審判員</div>
+    <div class="form-row">
+      <div class="form-group"><label>球審①</label><input id="ump_hp1" placeholder="審判名"></div>
+      <div class="form-group"><label>球審②</label><input id="ump_hp2" placeholder="審判名"></div>
+      <div class="form-group"><label>一塁審①</label><input id="ump_1b1" placeholder="審判名"></div>
+      <div class="form-group"><label>一塁審②</label><input id="ump_1b2" placeholder="審判名"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>二塁審①</label><input id="ump_2b1" placeholder="審判名"></div>
+      <div class="form-group"><label>二塁審②</label><input id="ump_2b2" placeholder="審判名"></div>
+      <div class="form-group"><label>三塁審①</label><input id="ump_3b1" placeholder="審判名"></div>
+      <div class="form-group"><label>三塁審②</label><input id="ump_3b2" placeholder="審判名"></div>
+    </div>
+  </div>
+  <div id="setupOk" class="alert alert-green" style="display:none">✅ 保存しました</div>
+  <div class="btn-row">
+    <button class="btn btn-gold" onclick="saveSetup(true)">💾 保存</button>
+    <button class="btn btn-outline" onclick="showPage('roster')">次へ：選手登録 →</button>
+  </div>
+</div>
+
+<!-- ===== 選手登録 ===== -->
+<div class="page" id="page-roster">
+  <div class="section-title">👥 選手登録</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+
+    <!-- 先攻チーム -->
+    <div>
+      <div class="card">
+        <div class="card-title" id="roster-first-title">🔵 先攻チーム 選手追加</div>
+        <div class="form-group" style="margin-bottom:8px"><label>背番号</label><input type="number" id="p1_num" min="0" max="99" placeholder="番号"></div>
+        <div class="form-group" style="margin-bottom:8px"><label>選手名（漢字）</label><input id="p1_name" placeholder="例：山田 太郎"></div>
+        <div class="form-group" style="margin-bottom:8px"><label>ふりがな</label><input id="p1_kana" placeholder="例：やまだ たろう"></div>
+        <div class="form-group" style="margin-bottom:8px"><label>守備位置</label><select id="p1_pos"><option value="ピッチャー">ピッチャー</option><option value="キャッチャー">キャッチャー</option><option value="ファースト">ファースト</option><option value="セカンド">セカンド</option><option value="サード">サード</option><option value="ショート">ショート</option><option value="レフト">レフト</option><option value="センター">センター</option><option value="ライト">ライト</option><option value="指名打者">指名打者</option></select></div>
+        <div class="form-group" style="margin-bottom:8px"><label>性別</label><select id="p1_gender"><option value="男子">男子（君）</option><option value="女子">女子（さん）</option></select></div>
+        <button class="btn btn-gold btn-sm" onclick="addPlayer(1)" style="margin-top:6px">➕ 追加</button>
+      </div>
+      <div class="card">
+        <div class="card-title">登録選手 <span id="pc1" class="badge badge-gold">0名</span></div>
+        <div id="roster1"></div>
+      </div>
+    </div>
+
+    <!-- 後攻チーム -->
+    <div>
+      <div class="card">
+        <div class="card-title" id="roster-second-title">🔴 後攻チーム 選手追加</div>
+        <div class="form-group" style="margin-bottom:8px"><label>背番号</label><input type="number" id="p2_num" min="0" max="99" placeholder="番号"></div>
+        <div class="form-group" style="margin-bottom:8px"><label>選手名（漢字）</label><input id="p2_name" placeholder="例：田中 次郎"></div>
+        <div class="form-group" style="margin-bottom:8px"><label>ふりがな</label><input id="p2_kana" placeholder="例：たなか じろう"></div>
+        <div class="form-group" style="margin-bottom:8px"><label>守備位置</label><select id="p2_pos"><option value="ピッチャー">ピッチャー</option><option value="キャッチャー">キャッチャー</option><option value="ファースト">ファースト</option><option value="セカンド">セカンド</option><option value="サード">サード</option><option value="ショート">ショート</option><option value="レフト">レフト</option><option value="センター">センター</option><option value="ライト">ライト</option><option value="指名打者">指名打者</option></select></div>
+        <div class="form-group" style="margin-bottom:8px"><label>性別</label><select id="p2_gender"><option value="男子">男子（君）</option><option value="女子">女子（さん）</option></select></div>
+        <button class="btn btn-gold btn-sm" onclick="addPlayer(2)" style="margin-top:6px">➕ 追加</button>
+      </div>
+      <div class="card">
+        <div class="card-title">登録選手 <span id="pc2" class="badge badge-gold">0名</span></div>
+        <div id="roster2"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 試合前 ===== -->
+<div class="page" id="page-prestart">
+  <div class="section-title">🔔 試合前アナウンス</div>
+
+  <div class="tab-row">
+    <button class="tab-btn active" onclick="showTab('pre','knock')" id="pretab-knock">シートノック</button>
+    <button class="tab-btn" onclick="showTab('pre','start')" id="pretab-start">試合開始時間</button>
+  </div>
+
+  <div id="pre-knock">
+    <div class="card">
+      <div class="card-title">⚾ シートノック案内</div>
+      <div class="form-row">
+        <div class="form-group"><label>後攻チーム名</label><input id="knock_second" placeholder="自動入力されます"></div>
+        <div class="form-group"><label>先攻チーム名</label><input id="knock_first" placeholder="自動入力されます"></div>
+        <div class="form-group"><label>ノック開始予定時刻</label><input type="time" id="knock_time"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-gold btn-sm" onclick="buildKnock('prep')">準備アナウンス</button>
+        <button class="btn btn-outline btn-sm" onclick="buildKnock('start1')">後攻ノック開始（5分）</button>
+        <button class="btn btn-outline btn-sm" onclick="buildKnock('warn1')">後攻 残り1分</button>
+        <button class="btn btn-outline btn-sm" onclick="buildKnock('end1')">後攻ノック終了</button>
+        <button class="btn btn-blue btn-sm" onclick="buildKnock('start2')">先攻ノック開始（5分）</button>
+        <button class="btn btn-outline btn-sm" onclick="buildKnock('warn2')">先攻 残り1分</button>
+        <button class="btn btn-outline btn-sm" onclick="buildKnock('end2')">先攻ノック終了</button>
+      </div>
+    </div>
+    <div id="knock-announce" style="display:none">
+      <div class="announce-box">
+        <div class="announce-label">📢 アナウンス原稿</div>
+        <div class="announce-text" id="knock-text"></div>
+        <div class="announce-note" id="knock-note"></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-gold" onclick="copyEl('knock-text')">📋 コピー</button></div>
+    </div>
+  </div>
+
+  <div id="pre-start" style="display:none">
+    <div class="card">
+      <div class="card-title">🕐 試合開始時間案内</div>
+      <div class="form-row">
+        <div class="form-group"><label>第○試合</label><input type="number" id="start_gnum" value="1" min="1"></div>
+        <div class="form-group"><label>開始予定時刻</label><input type="time" id="start_time"></div>
+        <div class="form-group"><label>シートノック予定時刻（任意）</label><input type="time" id="start_knock_time"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-gold btn-sm" onclick="buildStartAnnounce('knock')">ノック時間のみ案内</button>
+        <button class="btn btn-outline btn-sm" onclick="buildStartAnnounce('game')">試合開始時間のみ案内</button>
+        <button class="btn btn-outline btn-sm" onclick="buildStartAnnounce('both')">両方まとめて案内</button>
+      </div>
+    </div>
+    <div id="start-announce" style="display:none">
+      <div class="announce-box">
+        <div class="announce-label">📢 アナウンス原稿</div>
+        <div class="announce-text" id="start-text"></div>
+        <div class="announce-note">※２回繰り返してアナウンスしてください</div>
+      </div>
+      <div class="btn-row"><button class="btn btn-gold" onclick="copyEl('start-text')">📋 コピー</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== スタメン発表 ===== -->
+<div class="page" id="page-lineup">
+  <div class="section-title">📋 スターティングラインアップ</div>
+
+  <div class="tab-row">
+    <button class="tab-btn active" onclick="showTab('lu','set')" id="lutab-set">ラインナップ設定</button>
+    <button class="tab-btn" onclick="showTab('lu','announce')" id="lutab-announce">アナウンス生成</button>
+  </div>
+
+  <div id="lu-set">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div class="card">
+        <div class="card-title" id="lu-first-title">🔵 先攻 打順設定</div>
+        <div id="lu-first-slots"></div>
+      </div>
+      <div class="card">
+        <div class="card-title" id="lu-second-title">🔴 後攻 打順設定</div>
+        <div id="lu-second-slots"></div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-gold" onclick="showTab('lu','announce');buildLineupAnnounce()">📢 アナウンス原稿を生成</button>
+    </div>
+  </div>
+
+  <div id="lu-announce" style="display:none">
+    <div class="card">
+      <div class="card-title">審判追加情報</div>
+      <div class="form-row">
+        <div class="form-group"><label>球審</label><input id="lu_ump_hp" placeholder="審判名（自動入力）"></div>
+        <div class="form-group"><label>一塁審</label><input id="lu_ump_1b" placeholder="審判名"></div>
+        <div class="form-group"><label>二塁審</label><input id="lu_ump_2b" placeholder="審判名"></div>
+        <div class="form-group"><label>三塁審</label><input id="lu_ump_3b" placeholder="審判名"></div>
+      </div>
+    </div>
+    <div class="announce-box">
+      <div class="announce-label">📢 スターティングラインナップ発表</div>
+      <div class="announce-text" id="lu-announce-text"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-gold" onclick="buildLineupAnnounce()">🔄 再生成</button>
+      <button class="btn btn-outline" onclick="copyEl('lu-announce-text')">📋 コピー</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 試合中 ===== -->
+<div class="page" id="page-game">
+  <div class="section-title">⚾ 試合中アナウンス</div>
+
+  <!-- スコア表示 -->
+  <div class="card">
+    <div class="scoreboard">
+      <div><div class="score-name" id="g-first-name">先攻</div><div class="score-num" id="g-first-score">0</div></div>
+      <div class="score-vs">VS</div>
+      <div><div class="score-name" id="g-second-name">後攻</div><div class="score-num" id="g-second-score">0</div></div>
+    </div>
+    <div class="inning-info" id="g-inning-info">第1回 表</div>
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-blue btn-sm" onclick="addRuns(1)">先攻 +1点</button>
+      <button class="btn btn-red btn-sm" onclick="addRuns(2)">後攻 +1点</button>
+      <button class="btn btn-outline btn-sm" onclick="nextHalf()">イニングチェンジ ▶</button>
+    </div>
+  </div>
+
+  <!-- 投球数 -->
+  <div class="card">
+    <div class="card-title">⚡ 投球数管理</div>
+    <div class="pitch-card">
+      <div class="pitch-box">
+        <div class="pitch-label">この回の投球数</div>
+        <div class="pitch-count" id="pitch-this">0</div>
+        <div style="display:flex;gap:6px;justify-content:center;margin-top:8px">
+          <button class="btn btn-gold btn-sm" onclick="addPitch(1)">＋1</button>
+          <button class="btn btn-outline btn-sm" onclick="addPitch(-1)">－1</button>
+        </div>
+      </div>
+      <div class="pitch-box">
+        <div class="pitch-label" id="pitch-pitcher-label">投手 合計投球数</div>
+        <div class="pitch-count" id="pitch-total">0</div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>現在の投手</label>
+        <select id="g-pitcher-sel"><option value="">-- 選手を選択 --</option></select>
+      </div>
+    </div>
+  </div>
+
+  <!-- シート紹介 -->
+  <div class="card">
+    <div class="card-title">🛡️ シート紹介（守備側）</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>守備チーム</label>
+        <select id="g-def-team">
+          <option value="1">先攻チーム（守備中）</option>
+          <option value="2">後攻チーム（守備中）</option>
+        </select>
+      </div>
+    </div>
+    <div id="g-defense-slots" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px"></div>
+    <div class="btn-row">
+      <button class="btn btn-gold btn-sm" onclick="buildDefenseAnnounce()">📢 シート紹介原稿を生成</button>
+    </div>
+    <div id="defense-announce" style="display:none">
+      <div class="announce-box" style="margin-top:12px">
+        <div class="announce-label">📢 シート紹介</div>
+        <div class="announce-text" id="defense-text"></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-gold" onclick="copyEl('defense-text')">📋 コピー</button></div>
+    </div>
+  </div>
+
+  <!-- バッター紹介 -->
+  <div class="card">
+    <div class="card-title">🏏 バッター紹介</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>攻撃チーム</label>
+        <select id="g-bat-team">
+          <option value="1">先攻チーム（攻撃中）</option>
+          <option value="2">後攻チーム（攻撃中）</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>打順</label>
+        <select id="g-bat-order">
+          <option value="1番">1番</option><option value="2番">2番</option><option value="3番">3番</option>
+          <option value="4番">4番</option><option value="5番">5番</option><option value="6番">6番</option>
+          <option value="7番">7番</option><option value="8番">8番</option><option value="9番">9番</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>打者</label>
+        <select id="g-batter-sel"><option value="">-- 選手を選択 --</option></select>
+      </div>
+      <div class="form-group">
+        <label>打席</label>
+        <select id="g-bat-ab">
+          <option value="first">初打席（フルネーム・背番号あり）</option>
+          <option value="second">2打席目以降（苗字のみ・背番号なし）</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-gold btn-sm" onclick="buildBatterAnnounce()">📢 バッター紹介原稿を生成</button>
+    </div>
+    <div id="batter-announce" style="display:none">
+      <div class="announce-box" style="margin-top:12px">
+        <div class="announce-label">📢 バッター紹介</div>
+        <div class="announce-text" id="batter-text"></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-gold" onclick="copyEl('batter-text')">📋 コピー</button></div>
+    </div>
+  </div>
+
+  <!-- イニング終了 -->
+  <div class="card">
+    <div class="card-title">📋 イニング終了アナウンス</div>
+    <div class="btn-row">
+      <button class="btn btn-gold btn-sm" onclick="buildInningEnd()">📢 イニング終了原稿を生成</button>
+    </div>
+    <div id="inning-end-announce" style="display:none">
+      <div class="announce-box" style="margin-top:12px">
+        <div class="announce-label">📢 イニング終了</div>
+        <div class="announce-text" id="inning-end-text"></div>
+        <div class="announce-note" id="inning-end-note"></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-gold" onclick="copyEl('inning-end-text')">📋 コピー</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 選手交代 ===== -->
+<div class="page" id="page-change">
+  <div class="section-title">🔄 選手交代アナウンス</div>
+
+  <div class="tab-row">
+    <button class="tab-btn active" onclick="showTab('ch','pinch')" id="chtab-pinch">代打</button>
+    <button class="tab-btn" onclick="showTab('ch','runner')" id="chtab-runner">代走</button>
+    <button class="tab-btn" onclick="showTab('ch','defense')" id="chtab-defense">守備変更のみ</button>
+    <button class="tab-btn" onclick="showTab('ch','complex')" id="chtab-complex">複合交代</button>
+    <button class="tab-btn" onclick="showTab('ch','temp')" id="chtab-temp">臨時代走</button>
+    <button class="tab-btn" onclick="showTab('ch','ibb')" id="chtab-ibb">申告敬遠</button>
+  </div>
+
+  <!-- 代打 -->
+  <div id="ch-pinch">
+    <div class="card">
+      <div class="card-title">🏏 代打アナウンス</div>
+      <div class="alert alert-gold">※可能であればフルネームで呼んであげましょう</div>
+      <div class="form-row">
+        <div class="form-group"><label>チーム</label><select id="ph-team" onchange="refreshTeamSelect('ph-team','ph-out','ph-in')"><option value="1">先攻チーム</option><option value="2">後攻チーム</option></select></div>
+        <div class="form-group"><label>交代される選手（OUT）</label><select id="ph-out"><option value="">-- 選手 --</option></select></div>
+        <div class="form-group"><label>代打選手（IN）</label><select id="ph-in"><option value="">-- 選手 --</option></select></div>
+        <div class="form-group"><label>打順</label><select id="ph-order"><option value="1番">1番</option><option value="2番">2番</option><option value="3番">3番</option><option value="4番">4番</option><option value="5番">5番</option><option value="6番">6番</option><option value="7番">7番</option><option value="8番">8番</option><option value="9番">9番</option></select></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-gold btn-sm" onclick="buildPinchHitter()">📢 原稿生成</button></div>
+    </div>
+    <div id="ph-announce" style="display:none">
+      <div class="announce-box"><div class="announce-label">📢 代打アナウンス</div><div class="announce-text" id="ph-text"></div><div class="announce-note">※球審の指示の後にアナウンス。ネクストや背番号で代打と気づいたら球審が放送席を見た時にOKサインを出すとスムーズです</div></div>
+      <div class="btn-row"><button class="btn btn-gold" onclick="copyEl('ph-text')">📋 コピー</button></div>
+    </div>
+  </div>
+
+  <!-- 代走 -->
+  <div id="ch-runner" style="display:none">
+    <div class="card">
+      <div class="card-title">🏃 代走アナウンス</div>
+      <div class="alert alert-gold">※可能であればフルネームで呼んであげましょう</div>
+      <div class="form-row">
+        <div class="form-group"><label>チーム</label><select id="pr-team"><option value="1">先攻チーム</option><option value="2">後攻チーム</option></select></div>
+        <div class="form-group"><label>塁</label><select id="pr-base"><option value="ファースト">ファースト</option><option value="セカンド">セカンド</option><option value="サード">サード</option></select></div>
+        <div class="form-group"><label>交代される選手（OUT）</label><select id="pr-out"><option value="">-- 選手 --</option></select></div>
+        <div class="form-group"><label>代走選手（IN）</label><select id="pr-in"><option value="">-- 選手 --</option></select></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-gold btn-sm" onclick="buildPinchRunner()">📢 原稿生成</button></div>
+    </div>
+    <div id="pr-announce" style="display:none">
+      <div class="announce-box"><div class="announce-label">📢 代走アナウンス</div><div class="announce-text" id="pr-text"></div></div>
+      <div class="btn-row"><button class="btn btn-gold" onclick="copyEl('pr-text')">📋 コピー</button></div>
+    </div>
+  </div>
+
+  <!-- 守備変更のみ -->
+  <div id="ch-defense" style="display:none">
+    <div class="card">
+      <div class="card-title">🛡️ 守備位置変更（シートの変更）</div>
+      <div class="form-row">
+        <div class="form-group"><label>チーム</label><select id="def-team"><option value="1">先攻チーム</option><option value="2">後攻チーム</option></select></div>
+      </div>
+      <div id="def-changes">
+        <div class="def-change-row" style="display:grid;grid-template-columns:1fr 1fr 1fr 30px;gap:6px;margin-bottom:6px;align-items:end">
+          <div class="form-group"><label>選手</label><select class="def-player"><option value="">-- 選手 --</option></select></div>
+          <div class="form-group"><label>変更前守備</label><select class="def-from"><option value="ピッチャー">ピッチャー</option><option value="キャッチャー">キャッチャー</option><option value="ファースト">ファースト</option><option value="セカンド">セカンド</option><option value="サード">サード</option><option value="ショート">ショート</option><option value="レフト">レフト</option><option value="センター">センター</option><option value="ライト">ライト</option></select></div>
+          <div class="form-group"><label>変更後守備</label><select class="def-to"><option value="ピッチャー">ピッチャー</option><option value="キャッチャー">キャッチャー</option><option value="ファースト">ファースト</option><option value="セカンド">セカンド</option><option value="サード">サード</option><option value="ショート">ショート</option><option value="レフト">レフト</option><option value="センター">センター</option><option value="ライト">ライト</option></select></div>
+          <div></div>
+        </div>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="addDefChange()">＋ 追加</button>
+      <div class="btn-row"><button class="btn btn-gold btn-sm" onclick="buildDefenseChange()">📢 原稿生成</button></div>
+    </div>
+    <div id="def-announce" style="display:none">
+      <div class="announce-box"><div class="announce-label">📢 守備変更アナウンス</div><div class="announce-text" id="def-text"></div></div>
+      <div class="btn-row"><button class="btn btn-gold" onclick="copyEl('def-text')">📋 コピー</button></div>
+    </div>
+  </div>
+
+  <!-- 複合交代 -->
+  <div id="ch-complex" style="display:none">
+    <div class="card">
+      <div class="card-title">🔄 複合交代（ベンチからの新選手＋守備変更）</div>
+      <div class="alert alert-gold">複数の交代を自由に入力して原稿を生成します</div>
+      <div class="form-row">
+        <div class="form-group"><label>チーム</label><select id="cx-team"><option value="1">先攻チーム</option><option value="2">後攻チーム</option></select></div>
+      </div>
+      <div class="form-group" style="margin-bottom:10px">
+        <label>交代内容（自由入力 — 例：ピッチャーの山田君に代わりまして3番に鈴木一郎君が入りセンター。センターの田中君がピッチャー。）</label>
+        <textarea id="cx-detail" rows="4" placeholder="交代内容を入力してください"></textarea>
+      </div>
+      <div class="form-group" style="margin-bottom:10px">
+        <label>最終ラインナップ（例：3番センター鈴木一郎君、背番号『5』、3番ピッチャー田中君。）</label>
+        <textarea id="cx-lineup" rows="3" placeholder="最終ポジション一覧を入力してください"></textarea>
+      </div>
+      <div class="btn-row"><button class="btn btn-gold btn-sm" onclick="buildComplexChange()">📢 原稿生成</button></div>
+    </div>
+    <div id="cx-announce" style="display:none">
+      <div class="announce-box"><div class="announce-label">📢 複合交代アナウンス</div><div class="announce-text" id="cx-text"></div></div>
+      <div class="btn-row"><button class="btn btn-gold" onclick="copyEl('cx-text')">📋 コピー</button></div>
+    </div>
+  </div>
+
+  <!-- 臨時代走 -->
+  <div id="ch-temp" style="display:none">
+    <div class="card">
+      <div class="card-title">🏃 臨時代走</div>
+      <div class="alert alert-gold">※基本的には投手を除く一番直近でアウトになった選手が臨時代走に出ます。スコアボードに名前表示は不要です。</div>
+      <div class="form-row">
+        <div class="form-group"><label>負傷者</label><select id="temp-out"><option value="">-- 選手 --</option></select></div>
+        <div class="form-group"><label>臨時代走選手</label><select id="temp-in"><option value="">-- 選手 --</option></select></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-gold btn-sm" onclick="buildTempRunner()">📢 原稿生成</button></div>
+    </div>
+    <div id="temp-announce" style="display:none">
+      <div class="announce-box"><div class="announce-label">📢 臨時代走アナウンス</div><div class="announce-text" id="temp-text"></div></div>
+      <div class="btn-row"><button class="btn btn-gold" onclick="copyEl('temp-text')">📋 コピー</button></div>
+    </div>
+  </div>
+
+  <!-- 申告敬遠 -->
+  <div id="ch-ibb" style="display:none">
+    <div class="card">
+      <div class="card-title">🚶 申告敬遠アナウンス</div>
+      <div class="form-row">
+        <div class="form-group"><label>チーム</label><select id="ibb-team"><option value="1">先攻チーム</option><option value="2">後攻チーム</option></select></div>
+        <div class="form-group"><label>申告敬遠される選手</label><select id="ibb-player"><option value="">-- 選手 --</option></select></div>
+        <div class="form-group"><label>ネクスト打者（打順）</label><select id="ibb-next-order"><option value="1番">1番</option><option value="2番">2番</option><option value="3番">3番</option><option value="4番">4番</option><option value="5番">5番</option><option value="6番">6番</option><option value="7番">7番</option><option value="8番">8番</option><option value="9番">9番</option></select></div>
+        <div class="form-group"><label>ネクスト打者</label><select id="ibb-next-player"><option value="">-- 選手 --</option></select></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-gold btn-sm" onclick="buildIBB()">📢 原稿生成</button></div>
+    </div>
+    <div id="ibb-announce" style="display:none">
+      <div class="announce-box"><div class="announce-label">📢 申告敬遠アナウンス</div><div class="announce-text" id="ibb-text"></div></div>
+      <div class="btn-row"><button class="btn btn-gold" onclick="copyEl('ibb-text')">📋 コピー</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 得点・終了 ===== -->
+<div class="page" id="page-score">
+  <div class="section-title">🏟️ 得点・試合終了</div>
+
+  <div class="tab-row">
+    <button class="tab-btn active" onclick="showTab('sc','score')" id="sctab-score">得点アナウンス</button>
+    <button class="tab-btn" onclick="showTab('sc','end')" id="sctab-end">試合終了</button>
+    <button class="tab-btn" onclick="showTab('sc','tb')" id="sctab-tb">タイブレーク</button>
+  </div>
+
+  <div id="sc-score">
+    <div class="card">
+      <div class="card-title">🏆 得点アナウンス（イニング終了時）</div>
+      <div class="announce-note" style="margin-bottom:12px">※「この回の得点は〇点」は毎イニング終了時に読み上げます。投球数は2回以降。</div>
+      <div class="form-row">
+        <div class="form-group"><label>この回の得点</label><input type="number" id="sc-runs" value="0" min="0"></div>
+        <div class="form-group"><label>投手名</label><select id="sc-pitcher"><option value="">-- 選手 --</option></select></div>
+        <div class="form-group"><label>この回の投球数</label><input type="number" id="sc-pitch-this" value="0" min="0"></div>
+        <div class="form-group"><label>投手 合計投球数</label><input type="number" id="sc-pitch-total" value="0" min="0"></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-gold btn-sm" onclick="buildScoreAnnounce()">📢 原稿生成</button></div>
+    </div>
+    <div id="sc-announce" style="display:none">
+      <div class="announce-box"><div class="announce-label">📢 得点アナウンス</div><div class="announce-text" id="sc-text"></div></div>
+      <div class="btn-row"><button class="btn btn-gold" onclick="copyEl('sc-text')">📋 コピー</button></div>
+    </div>
+  </div>
+
+  <div id="sc-end" style="display:none">
+    <div class="card">
+      <div class="card-title">🏁 試合終了アナウンス</div>
+      <div class="form-row">
+        <div class="form-group"><label>勝利チーム</label><select id="end-winner"><option value="1">先攻チーム</option><option value="2">後攻チーム</option></select></div>
+        <div class="form-group"><label>先攻スコア</label><input type="number" id="end-s1" value="0" min="0"></div>
+        <div class="form-group"><label>後攻スコア</label><input type="number" id="end-s2" value="0" min="0"></div>
+        <div class="form-group"><label>投手名</label><select id="end-pitcher"><option value="">-- 選手 --</option></select></div>
+        <div class="form-group"><label>投手 合計投球数</label><input type="number" id="end-pitch" value="0" min="0"></div>
+        <div class="form-group"><label>終了時刻</label><input type="time" id="end-time"></div>
+        <div class="form-group"><label>次の試合</label><input type="number" id="end-next-game" placeholder="第○試合（任意）"></div>
+        <div class="form-group"><label>次試合開始時刻（任意）</label><input type="time" id="end-next-time"></div>
+        <div class="form-group"><label>決勝戦?</label><select id="end-final"><option value="no">通常試合</option><option value="yes">決勝戦（優勝）</option></select></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-gold btn-sm" onclick="buildEndAnnounce()">📢 原稿生成</button></div>
+    </div>
+    <div id="end-announce" style="display:none">
+      <div class="announce-box"><div class="announce-label">📢 試合終了アナウンス</div><div class="announce-text" id="end-text"></div><div class="announce-note">※投球数の計算もあるため、選手が整列していたら少し待ってから。子供たちの挨拶を優先してください。</div></div>
+      <div class="btn-row"><button class="btn btn-gold" onclick="copyEl('end-text')">📋 コピー</button></div>
+    </div>
+  </div>
+
+  <div id="sc-tb" style="display:none">
+    <div class="card">
+      <div class="card-title">⚡ タイブレークアナウンス</div>
+      <div class="alert alert-gold">サードランナーから紹介（2025年改訂）</div>
+      <div class="form-row">
+        <div class="form-group"><label>攻撃チーム（任意）</label><select id="tb-team"><option value="">-- 選択 --</option><option value="1">先攻チーム</option><option value="2">後攻チーム</option></select></div>
+        <div class="form-group"><label>サードランナー</label><select id="tb-3rd"><option value="">-- 選手 --</option></select></div>
+        <div class="form-group"><label>セカンドランナー</label><select id="tb-2nd"><option value="">-- 選手 --</option></select></div>
+        <div class="form-group"><label>ファーストランナー</label><select id="tb-1st"><option value="">-- 選手 --</option></select></div>
+        <div class="form-group"><label>バッター（打順）</label><select id="tb-bat-order"><option value="1番">1番</option><option value="2番">2番</option><option value="3番">3番</option><option value="4番">4番</option><option value="5番">5番</option><option value="6番">6番</option><option value="7番">7番</option><option value="8番">8番</option><option value="9番">9番</option></select></div>
+        <div class="form-group"><label>バッター</label><select id="tb-batter"><option value="">-- 選手 --</option></select></div>
+      </div>
+      <div class="btn-row"><button class="btn btn-gold btn-sm" onclick="buildTiebreak()">📢 原稿生成</button></div>
+    </div>
+    <div id="tb-announce" style="display:none">
+      <div class="announce-box"><div class="announce-label">📢 タイブレークアナウンス</div><div class="announce-text" id="tb-text"></div><div class="announce-note">※ランナーの背番号確認してOKなら審判に合図してアナウンス</div></div>
+      <div class="btn-row"><button class="btn btn-gold" onclick="copyEl('tb-text')">📋 コピー</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 各種お知らせ ===== -->
+<div class="page" id="page-misc">
+  <div class="section-title">📢 各種お知らせ</div>
+  <div class="quick-grid" id="misc-grid"></div>
+  <div id="misc-announce" style="display:none;margin-top:14px">
+    <div class="announce-box">
+      <div class="announce-label">📢 アナウンス原稿</div>
+      <div class="announce-text" id="misc-text"></div>
+    </div>
+    <div class="btn-row"><button class="btn btn-gold" onclick="copyEl('misc-text')">📋 コピー</button></div>
+  </div>
+</div>
+
+</div><!-- /container -->
+<div class="copied-toast" id="toast">✅ コピーしました！</div>
+
+<script>
+// ===== STATE =====
+const S = {
+  setup: { tournament:'', gameNum:1, round:'1回戦', firstTeam:'', firstSide:'1塁側', secondTeam:'', secondSide:'3塁側', date:'', venue:'', umps:{hp1:'',hp2:'',b1:'',b2:'',b2a:'',b3:'',b3a:''} },
+  players: { 1:[], 2:[] },
+  lineup: { 1: Array(9).fill(null), 2: Array(9).fill(null) },
+  scores: { 1:0, 2:0 },
+  inning: 1,
+  topBottom: 'top', // top=表 bottom=裏
+  pitch: { thisInning:0, total:0, pitcher:null },
+  defSlots: { P:null, C:null, '1B':null, '2B':null, '3B':null, SS:null, LF:null, CF:null, RF:null }
+};
+
+const POS_LABELS = ['ピッチャー','キャッチャー','ファースト','セカンド','サード','ショート','レフト','センター','ライト'];
+const POS_KEYS = ['P','C','1B','2B','3B','SS','LF','CF','RF'];
+const POS_JP = {P:'ピッチャー',C:'キャッチャー','1B':'ファースト','2B':'セカンド','3B':'サード',SS:'ショート',LF:'レフト',CF:'センター',RF:'ライト'};
+
+// ===== NAV =====
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.getElementById('nav-'+name).classList.add('active');
+  if(name==='lineup') { buildLineupSlots(); }
+  if(name==='game') { refreshGameSelects(); buildDefenseSlotUI(); }
+  if(name==='change') { refreshAllChangeSelects(); }
+  if(name==='score') { refreshScoreSelects(); }
+}
+
+function showTab(group, tab) {
+  const prefix = group+'-';
+  document.querySelectorAll(`[id^="${prefix}"]`).forEach(el=>{
+    if(!el.id.includes('tab')) el.style.display='none';
+  });
+  const el = document.getElementById(prefix+tab);
+  if(el) el.style.display='block';
+  document.querySelectorAll(`[id^="${group}tab-"]`).forEach(b=>b.classList.remove('active'));
+  const tabBtn = document.getElementById(group+'tab-'+tab);
+  if(tabBtn) tabBtn.classList.add('active');
+}
+
+// ===== SETUP =====
+function saveSetup(showMsg=false) {
+  S.setup.tournament = v('s_tournament');
+  S.setup.gameNum = v('s_gameNum');
+  S.setup.round = v('s_round');
+  S.setup.firstTeam = v('s_firstTeam');
+  S.setup.firstSide = v('s_firstSide');
+  S.setup.secondTeam = v('s_secondTeam');
+  S.setup.secondSide = v('s_secondSide');
+  S.setup.date = v('s_date');
+  S.setup.venue = v('s_venue');
+  // umps
+  ['hp1','hp2','1b1','1b2','2b1','2b2','3b1','3b2'].forEach(k=> {
+    S.setup['ump_'+k] = v('ump_'+k);
+  });
+  document.getElementById('hdr-my').textContent = S.setup.firstTeam||'先攻未設定';
+  document.getElementById('hdr-opp').textContent = S.setup.secondTeam||'後攻未設定';
+  document.getElementById('g-first-name').textContent = S.setup.firstTeam||'先攻';
+  document.getElementById('g-second-name').textContent = S.setup.secondTeam||'後攻';
+  updateRosterTitles();
+  updateLineupTitles();
+  // auto-fill knock fields
+  set('knock_first', S.setup.firstTeam);
+  set('knock_second', S.setup.secondTeam);
+  if(showMsg) { const e=document.getElementById('setupOk'); e.style.display='block'; setTimeout(()=>e.style.display='none',2000); }
+}
+
+function v(id) { const e=document.getElementById(id); return e?e.value:''; }
+function set(id, val) { const e=document.getElementById(id); if(e) e.value=val; }
+
+function updateRosterTitles() {
+  const e1=document.getElementById('roster-first-title');
+  const e2=document.getElementById('roster-second-title');
+  if(e1) e1.textContent = `🔵 ${S.setup.firstTeam||'先攻チーム'} 選手追加`;
+  if(e2) e2.textContent = `🔴 ${S.setup.secondTeam||'後攻チーム'} 選手追加`;
+}
+function updateLineupTitles() {
+  const e1=document.getElementById('lu-first-title');
+  const e2=document.getElementById('lu-second-title');
+  if(e1) e1.textContent = `🔵 ${S.setup.firstTeam||'先攻'} 打順設定`;
+  if(e2) e2.textContent = `🔴 ${S.setup.secondTeam||'後攻'} 打順設定`;
+}
+
+// ===== PLAYERS =====
+function addPlayer(team) {
+  const num=v(`p${team}_num`).trim(), name=v(`p${team}_name`).trim(), kana=v(`p${team}_kana`).trim();
+  const pos=v(`p${team}_pos`), gender=v(`p${team}_gender`);
+  if(!num||!name){alert('背番号と選手名を入力してください');return;}
+  S.players[team].push({id:Date.now(), num, name, kana, pos, gender});
+  S.players[team].sort((a,b)=>parseInt(a.num)-parseInt(b.num));
+  ['num','name','kana'].forEach(f=>set(`p${team}_${f}`,''));
+  renderRoster(team);
+}
+
+function deletePlayer(team, id) {
+  if(!confirm('削除しますか？'))return;
+  S.players[team]=S.players[team].filter(p=>p.id!==id);
+  renderRoster(team);
+}
+
+function renderRoster(team) {
+  const el=document.getElementById('roster'+team);
+  const count=document.getElementById('pc'+team);
+  count.textContent=S.players[team].length+'名';
+  if(!S.players[team].length){el.innerHTML='<div class="empty-msg">選手未登録</div>';return;}
+  el.innerHTML=`<table class="player-table"><thead><tr><th>#</th><th>名前</th><th>よみ</th><th>守備</th><th></th></tr></thead><tbody>`+
+    S.players[team].map(p=>`<tr><td class="num-cell">${p.num}</td><td>${p.name}</td><td style="font-size:0.75rem;color:var(--gray)">${p.kana||''}</td><td style="font-size:0.78rem">${p.pos}</td><td><button class="btn btn-red" onclick="deletePlayer(${team},${p.id})">削除</button></td></tr>`).join('')+
+    '</tbody></table>';
+}
+
+function getOpts(team, placeholder='-- 選手 --') {
+  return `<option value="">${placeholder}</option>`+S.players[team].map(p=>`<option value="${p.id}">${p.num}番 ${p.name}</option>`).join('');
+}
+
+function getPlayer(team, id) { return S.players[team].find(p=>p.id==id); }
+
+function honorific(p) { return p.gender==='女子' ? 'さん' : '君'; }
+
+// 同じ苗字チェック
+function hasSameFamilyName(team, name) {
+  const family = name.split(/\s|　/)[0];
+  return S.players[team].filter(p=> p.name.split(/\s|　/)[0]===family).length > 1;
+}
+
+function formatPlayerName(p, team, forceFullName=false, includeNum=true) {
+  const honor = honorific(p);
+  const family = p.name.split(/\s|　/)[0];
+  const sameFamily = hasSameFamilyName(team, p.name);
+  const useFull = forceFullName || sameFamily;
+  const displayName = useFull ? p.name : family;
+  let out = `${p.pos}　${displayName}${honor}`;
+  if(includeNum) out += `、背番号『${p.num}』`;
+  return out;
+}
+
+// ===== LINEUP =====
+function buildLineupSlots() {
+  [1,2].forEach(team=>{
+    const container=document.getElementById(`lu-${team===1?'first':'second'}-slots`);
+    if(!container)return;
+    container.innerHTML='';
+    for(let i=0;i<9;i++){
+      const p=S.lineup[team][i];
+      const posSel = POS_LABELS.map(pos=>`<option value="${pos}" ${p&&p.pos===pos?'selected':''}>${pos}</option>`).join('');
+      const playerSel = `<option value="">-- 選手 --</option>`+S.players[team].map(pl=>`<option value="${pl.id}" ${p&&p.id==pl.id?'selected':''}>${pl.num} ${pl.name}</option>`).join('');
+      container.innerHTML+=`
+        <div class="lineup-row ${p?'set':''}">
+          <div class="lineup-order-num">${i+1}</div>
+          <select style="font-size:0.78rem;padding:5px 6px" onchange="setLineup(${team},${i},this.value)">${playerSel}</select>
+          <select style="font-size:0.78rem;padding:5px 6px" id="lupos-${team}-${i}">${posSel}</select>
+          <span style="font-size:0.7rem;color:${p?'var(--green)':'var(--gray)'}">${p?'✅':'未設定'}</span>
+        </div>`;
+    }
+  });
+}
+
+function setLineup(team, idx, pid) {
+  if(!pid){S.lineup[team][idx]=null;}
+  else { const p=getPlayer(team,pid); S.lineup[team][idx]={...p}; }
+  buildLineupSlots();
+}
+
+function buildLineupAnnounce() {
+  const s=S.setup;
+  let text=`お待たせいたしました。本日の第${s.gameNum}試合\n（${s.tournament||'○○大会'}）の\n${s.round}\n${s.firstTeam||'○○ボーイズ'}（${s.firstSide}）対${s.secondTeam||'○○ボーイズ'}（${s.secondSide}）の\n試合開始に先立ちまして両チームのスターティングラインアップ\nならびにアンパイアをご紹介いたします。\n\n`;
+
+  [1,2].forEach((team,ti)=>{
+    const tname = team===1?s.firstTeam||'○○ボーイズ':s.secondTeam||'○○ボーイズ';
+    const side = team===1?s.firstSide:s.secondSide;
+    const label = team===1?'先攻':'後攻';
+    text += ti===0 ? `先攻　${side}　${tname}\n` : `\n対しまして、後攻　${side}　${tname}\n`;
+    S.lineup[team].forEach((p,i)=>{
+      if(!p){text+=`${i+1}番　（未設定）\n`;return;}
+      const posEl=document.getElementById(`lupos-${team}-${i}`);
+      const pos=posEl?posEl.value:p.pos;
+      const honor=honorific(p);
+      const sameFamily=hasSameFamilyName(team,p.name);
+      // 1コール目フルネーム、2コール目苗字（同姓がいない場合）
+      const family=p.name.split(/\s|　/)[0];
+      const name2 = sameFamily ? p.name : family;
+      text+=`${i+1}番　${pos}　${p.name}${honor}、${pos}　${name2}${honor}、背番号『${p.num}』\n`;
+    });
+  });
+
+  // 審判
+  const ump = (id)=>v(id)||'○○';
+  text+=`\nなお、この試合のアンパイアは\n球審　${v('ump_hp1')||v('lu_ump_hp')||'○○'}、球審　${v('ump_hp2')||'○○'}　塁審、一塁　${v('ump_1b1')||v('lu_ump_1b')||'○○'}、一塁　${v('ump_1b2')||'○○'}、\n二塁　${v('ump_2b1')||v('lu_ump_2b')||'○○'}、二塁　${v('ump_2b2')||'○○'}　三塁　${v('ump_3b1')||v('lu_ump_3b')||'○○'}、三塁　${v('ump_3b2')||'○○'}、\n以上、四氏でございます。試合開始まで今しばらくお待ちください。`;
+
+  document.getElementById('lu-announce-text').textContent=text;
+  document.getElementById('lu-announce').style.display='block';
+}
+
+// ===== PRE-GAME =====
+function buildKnock(type) {
+  const first=v('knock_first')||S.setup.firstTeam||'□□ボーイズ';
+  const second=v('knock_second')||S.setup.secondTeam||'○○ボーイズ';
+  let text='', note='';
+  if(type==='prep') {
+    text=`${second}、${second}、ノックの準備をしてください。`;
+    note='↑このコメントが相手チームにベンチに戻るよう促す役割も兼ねています';
+  } else if(type==='start1') {
+    text=`${second}、${second}、ノックを始めてください。\nノック時間は５分間です。`;
+    note='←このアナウンスをしたらストップウォッチを開始。BSOランプを5個点灯できれば1分ごとに消してもらいましょう。';
+  } else if(type==='warn1') {
+    text=`${second}、ノック時間、あと１分です。`;
+  } else if(type==='end1') {
+    text=`${second}、ノックを終了してください。`;
+    note='終了していたら言わなくて良い。後攻チームがベンチに戻ったことを確認してから先攻へ。';
+  } else if(type==='start2') {
+    text=`${first}、ノックを始めてください。\nノック時間は同じく５分間です。`;
+    note='←このアナウンスをしたらストップウォッチを開始';
+  } else if(type==='warn2') {
+    text=`${first}、ノック時間、あと１分です。`;
+  } else if(type==='end2') {
+    text=`${first}、ノックを終了してください。`;
+    note='終了していたら言わなくて良い';
+  }
+  document.getElementById('knock-text').textContent=text;
+  document.getElementById('knock-note').textContent=note;
+  document.getElementById('knock-announce').style.display='block';
+}
+
+function buildStartAnnounce(type) {
+  const gnum=v('start_gnum')||S.setup.gameNum||'○';
+  const time=v('start_time')||'○時○分';
+  const ktime=v('start_knock_time')||'○時○分';
+  const fmtTime=(t)=>{if(!t||!t.includes(':'))return t; const [h,m]=t.split(':'); return `${h}時${m}分`;};
+  let text='';
+  if(type==='knock') {
+    text=`お知らせいたします。\n第${gnum}試合のシートノックは　${fmtTime(ktime)}を予定しております。\n今しばらくお待ちください。`;
+  } else if(type==='game') {
+    text=`お知らせいたします。\n第${gnum}試合は　${fmtTime(time)}　開始の予定でございます。\n今しばらくお待ちください。`;
+  } else {
+    text=`お知らせいたします。\n第${gnum}試合は　${fmtTime(time)}　開始の予定でございます。\nなおシートノックは　${fmtTime(ktime)}を予定しております。\n今しばらくお待ちください。`;
+  }
+  document.getElementById('start-text').textContent=text;
+  document.getElementById('start-announce').style.display='block';
+}
+
+// ===== GAME PAGE =====
+function addRuns(team) { S.scores[team]++; document.getElementById(`g-${team===1?'first':'second'}-score`).textContent=S.scores[team]; }
+function nextHalf() {
+  if(S.topBottom==='top'){S.topBottom='bottom';} else {S.topBottom='top';S.inning++;}
+  updateInningDisplay();
+  // reset this inning pitch
+  S.pitch.thisInning=0; document.getElementById('pitch-this').textContent='0';
+}
+function updateInningDisplay() {
+  const tb=S.topBottom==='top'?'表':'裏';
+  document.getElementById('g-inning-info').textContent=`第${S.inning}回 ${tb}`;
+}
+function addPitch(n) {
+  S.pitch.thisInning=Math.max(0,S.pitch.thisInning+n);
+  S.pitch.total=Math.max(0,S.pitch.total+n);
+  document.getElementById('pitch-this').textContent=S.pitch.thisInning;
+  document.getElementById('pitch-total').textContent=S.pitch.total;
+}
+
+function refreshGameSelects() {
+  const allPlayers = [...S.players[1],...S.players[2]];
+  const pitcherSel = document.getElementById('g-pitcher-sel');
+  if(pitcherSel) pitcherSel.innerHTML='<option value="">-- 選手 --</option>'+allPlayers.map(p=>`<option value="${p.id}">${p.num}番 ${p.name}</option>`).join('');
+  const batTeam = parseInt(v('g-bat-team'))||1;
+  const batSel = document.getElementById('g-batter-sel');
+  if(batSel) batSel.innerHTML = getOpts(batTeam);
+}
+
+function buildDefenseSlotUI() {
+  const team=parseInt(v('g-def-team'))||2;
+  const container=document.getElementById('g-defense-slots');
+  if(!container)return;
+  container.innerHTML=POS_KEYS.map(key=>`
+    <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:7px;padding:8px;text-align:center">
+      <div style="font-size:0.65rem;color:var(--gold);margin-bottom:4px">${POS_JP[key]}</div>
+      <select style="font-size:0.75rem;padding:4px 6px;width:100%" id="def-slot-${key}">${getOpts(team)}</select>
+    </div>`).join('');
+}
+
+function buildDefenseAnnounce() {
+  const team=parseInt(v('g-def-team'))||2;
+  const tname=team===1?S.setup.firstTeam||'○○ボーイズ':S.setup.secondTeam||'○○ボーイズ';
+  const inning=S.inning; const tb=S.topBottom==='top'?'表':'裏';
+  const get=(key)=>{const pid=v(`def-slot-${key}`);return pid?getPlayer(team,pid):null;};
+  const name=(key)=>{const p=get(key);return p?p.name+'君':'○○君';};
+  const text=
+    `${inning}回の${tb}、まず守ります　${tname}の\nピッチャーは　${name('P')}、　キャッチャー　${name('C')}、\nファースト　${name('1B')}、　セカンド　${name('2B')}、\nサード　${name('3B')}、　ショート　${name('SS')}、　レフト　${name('LF')}\nセンター　${name('CF')}、　ライト　${name('RF')}`;
+  document.getElementById('defense-text').textContent=text;
+  document.getElementById('defense-announce').style.display='block';
+}
+
+document.addEventListener('change', e=>{
+  if(e.target.id==='g-def-team'||e.target.id==='g-bat-team') {
+    if(e.target.id==='g-def-team') buildDefenseSlotUI();
+    if(e.target.id==='g-bat-team') {
+      const team=parseInt(e.target.value)||1;
+      document.getElementById('g-batter-sel').innerHTML=getOpts(team);
+    }
+  }
+});
+
+function buildBatterAnnounce() {
+  const team=parseInt(v('g-bat-team'))||1;
+  const tname=team===1?S.setup.firstTeam||'○○ボーイズ':S.setup.secondTeam||'○○ボーイズ';
+  const order=v('g-bat-order');
+  const pid=v('g-batter-sel');
+  const ab=v('g-bat-ab');
+  if(!pid){alert('打者を選択してください');return;}
+  const p=getPlayer(team,pid);
+  const honor=honorific(p);
+  const inning=S.inning; const tb=S.topBottom==='top'?'表':'裏';
+  const sameFamily=hasSameFamilyName(team,p.name);
+  const family=p.name.split(/\s|　/)[0];
+
+  let nameStr='';
+  if(ab==='first') {
+    // 初打席: フルネーム+守備位置+背番号
+    nameStr=`${order}　${p.pos}　${p.name}${honor}、${p.pos}　${p.name}${honor}、背番号『${p.num}』`;
+  } else {
+    // 2打席目以降: 苗字のみ・背番号なし（同姓いれば常にフルネーム）
+    const displayName=sameFamily?p.name:family;
+    nameStr=`${order}　${p.pos}　${displayName}${honor}`;
+  }
+
+  const text=`${inning}回の${tb}　${tname}の攻撃は\n${nameStr}`;
+  document.getElementById('batter-text').textContent=text;
+  document.getElementById('batter-announce').style.display='block';
+}
+
+function buildInningEnd() {
+  const inning=S.inning; const tb=S.topBottom==='top'?'表':'裏';
+  const runs=document.getElementById('pitch-this')?parseInt(S.pitch.thisInning):0;
+  const pitcherId=v('g-pitcher-sel');
+  const pitcher=pitcherId?[...S.players[1],...S.players[2]].find(p=>p.id==pitcherId):null;
+  const pitcherName=pitcher?pitcher.name+'投手':'○○投手';
+  const runsStr=S.scores[S.topBottom==='top'?1:2]>0?'（この回の得点を入力してください）':'無得点';
+
+  let text=`この回の得点は　　　点。（０点の場合は「無得点」）`;
+  if(inning>=2) {
+    text+=`\n投球数は　${S.pitch.thisInning}　球です。${pitcherName}の合計投球数は　${S.pitch.total}　球です。`;
+  }
+  if(inning===1&&tb==='表') {
+    text+=`\n\nなお、この試合の開始時間は　　　時　　　分です。`;
+  }
+
+  const note=inning===1&&tb==='表'?'1回表終了時は試合開始時間もアナウンスしてください':'';
+  document.getElementById('inning-end-text').textContent=text;
+  document.getElementById('inning-end-note').textContent=note;
+  document.getElementById('inning-end-announce').style.display='block';
+}
+
+// ===== CHANGE SELECTS =====
+function refreshAllChangeSelects() {
+  ['ph','pr','def','cx','temp','ibb'].forEach(prefix=>{
+    ['out','in','player'].forEach(suffix=>{
+      const el=document.getElementById(`${prefix}-${suffix}`);
+      if(el) {
+        const teamEl=document.getElementById(`${prefix}-team`);
+        const team=teamEl?parseInt(teamEl.value)||1:1;
+        el.innerHTML=getOpts(team);
+      }
+    });
+  });
+  // temp - all players
+  const allP=[...S.players[1],...S.players[2]];
+  ['temp-out','temp-in','ibb-player','ibb-next-player'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.innerHTML='<option value="">-- 選手 --</option>'+allP.map(p=>`<option value="${p.id}">${p.num}番 ${p.name}</option>`).join('');
+  });
+}
+
+function refreshTeamSelect(teamId, outId, inId) {
+  const team=parseInt(v(teamId))||1;
+  document.getElementById(outId).innerHTML=getOpts(team);
+  document.getElementById(inId).innerHTML=getOpts(team);
+}
+
+// 代打
+function buildPinchHitter() {
+  const team=parseInt(v('ph-team'))||1;
+  const tname=team===1?S.setup.firstTeam:S.setup.secondTeam;
+  const outP=getPlayer(team,v('ph-out'));
+  const inP=getPlayer(team,v('ph-in'));
+  const order=v('ph-order');
+  if(!outP||!inP){alert('選手を選択してください');return;}
+  const honor=honorific(inP);
+  const text=`${order}　${outP.name}君に代わりまして　${inP.name}　${inP.name}　${honor}バッターは　${inP.name}　${honor}、背番号『${inP.num}』`;
+  document.getElementById('ph-text').textContent=text;
+  document.getElementById('ph-announce').style.display='block';
+}
+
+// 代走
+function buildPinchRunner() {
+  const team=parseInt(v('pr-team'))||1;
+  const base=v('pr-base');
+  const outP=getPlayer(team,v('pr-out'));
+  const inP=getPlayer(team,v('pr-in'));
+  if(!outP||!inP){alert('選手を選択してください');return;}
+  const honor=honorific(inP);
+  const text=`${base}ランナー　${outP.name}君に代わりまして　${inP.name}　${honor}\n${base}ランナーは　${inP.name}　${honor}、背番号『${inP.num}』`;
+  document.getElementById('pr-text').textContent=text;
+  document.getElementById('pr-announce').style.display='block';
+}
+
+// 守備変更
+function addDefChange() {
+  const container=document.getElementById('def-changes');
+  const team=parseInt(v('def-team'))||1;
+  const posSel=POS_LABELS.map(p=>`<option value="${p}">${p}</option>`).join('');
+  const playerSel=getOpts(team);
+  container.innerHTML+=`<div class="def-change-row" style="display:grid;grid-template-columns:1fr 1fr 1fr 30px;gap:6px;margin-bottom:6px;align-items:end">
+    <div class="form-group"><label>選手</label><select class="def-player">${playerSel}</select></div>
+    <div class="form-group"><label>変更前</label><select class="def-from">${posSel}</select></div>
+    <div class="form-group"><label>変更後</label><select class="def-to">${posSel}</select></div>
+    <button class="btn btn-red" style="align-self:flex-end" onclick="this.parentElement.remove()">✕</button>
+  </div>`;
+}
+
+function buildDefenseChange() {
+  const team=parseInt(v('def-team'))||1;
+  const tname=team===1?S.setup.firstTeam||'○○ボーイズ':S.setup.secondTeam||'○○ボーイズ';
+  const rows=document.querySelectorAll('.def-change-row');
+  if(!rows.length){alert('変更を入力してください');return;}
+  let changes=[], finals=[];
+  rows.forEach(row=>{
+    const pid=row.querySelector('.def-player').value;
+    const from=row.querySelector('.def-from').value;
+    const to=row.querySelector('.def-to').value;
+    const p=getPlayer(team,pid);
+    if(p){
+      changes.push(`${from}の${p.name}君が${to}`);
+      finals.push(`${to}　${p.name}君`);
+    }
+  });
+  const text=`${tname}、シートの変更をお知らせいたします。\n${changes.join('、')}。\n${finals.join('、')}。以上に代わります。`;
+  document.getElementById('def-text').textContent=text;
+  document.getElementById('def-announce').style.display='block';
+}
+
+// 複合交代
+function buildComplexChange() {
+  const team=parseInt(v('cx-team'))||1;
+  const tname=team===1?S.setup.firstTeam||'○○ボーイズ':S.setup.secondTeam||'○○ボーイズ';
+  const detail=v('cx-detail');
+  const lineup=v('cx-lineup');
+  if(!detail){alert('交代内容を入力してください');return;}
+  let text=`${tname}、選手の交代をお知らせいたします。\n${detail}`;
+  if(lineup) text+=`\n${lineup}\n以上に代わります。`;
+  document.getElementById('cx-text').textContent=text;
+  document.getElementById('cx-announce').style.display='block';
+}
+
+// 臨時代走
+function buildTempRunner() {
+  const allP=[...S.players[1],...S.players[2]];
+  const outP=allP.find(p=>p.id==v('temp-out'));
+  const inP=allP.find(p=>p.id==v('temp-in'));
+  if(!outP||!inP){alert('選手を選択してください');return;}
+  const text=`${outP.name}の臨時代走、${inP.name}君、臨時代走は　${inP.name}君`;
+  document.getElementById('temp-text').textContent=text;
+  document.getElementById('temp-announce').style.display='block';
+}
+
+// 申告敬遠
+function buildIBB() {
+  const allP=[...S.players[1],...S.players[2]];
+  const player=allP.find(p=>p.id==v('ibb-player'));
+  const nextP=allP.find(p=>p.id==v('ibb-next-player'));
+  if(!player){alert('選手を選択してください');return;}
+  const team=parseInt(v('ibb-team'))||1;
+  const tname=team===1?S.setup.firstTeam||'○○ボーイズ':S.setup.secondTeam||'○○ボーイズ';
+  const nextOrder=v('ibb-next-order');
+  let text=`${tname}　${player.name}君、申告敬遠の為、１塁に進塁いたします。`;
+  if(nextP) text+=`\nバッターは${nextOrder}　${nextP.pos}　${nextP.name}君`;
+  document.getElementById('ibb-text').textContent=text;
+  document.getElementById('ibb-announce').style.display='block';
+}
+
+// ===== SCORE =====
+function refreshScoreSelects() {
+  const allP=[...S.players[1],...S.players[2]];
+  const opts='<option value="">-- 選手 --</option>'+allP.map(p=>`<option value="${p.id}">${p.num}番 ${p.name}</option>`).join('');
+  ['sc-pitcher','end-pitcher','tb-3rd','tb-2nd','tb-1st','tb-batter'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.innerHTML=opts;
+  });
+}
+
+function buildScoreAnnounce() {
+  const runs=parseInt(v('sc-runs'))||0;
+  const runsStr=runs===0?'無得点':`${runs}点`;
+  const pitchThis=v('sc-pitch-this')||'0';
+  const pitchTotal=v('sc-pitch-total')||'0';
+  const allP=[...S.players[1],...S.players[2]];
+  const pitcher=allP.find(p=>p.id==v('sc-pitcher'));
+  const pitcherName=pitcher?pitcher.name+'投手':'○○投手';
+  let text=`この回の得点は　${runsStr}。`;
+  if(S.inning>=2) text+=`\n投球数は　${pitchThis}　球です。${pitcherName}の合計投球数は　${pitchTotal}　球です。`;
+  document.getElementById('sc-text').textContent=text;
+  document.getElementById('sc-announce').style.display='block';
+}
+
+function buildEndAnnounce() {
+  const winner=parseInt(v('end-winner'))||1;
+  const s1=v('end-s1')||'0', s2=v('end-s2')||'0';
+  const wname=winner===1?S.setup.firstTeam||'○○ボーイズ':S.setup.secondTeam||'○○ボーイズ';
+  const allP=[...S.players[1],...S.players[2]];
+  const pitcher=allP.find(p=>p.id==v('end-pitcher'));
+  const pitcherName=pitcher?pitcher.name:'○○';
+  const pitchTotal=v('end-pitch')||'○';
+  const endTime=(t)=>{if(!t||!t.includes(':'))return '○時○分'; const [h,m]=t.split(':'); return `${h}時${m}分`;};
+  const isFinal=v('end-final')==='yes';
+  const nextGame=v('end-next-game');
+  const nextTime=v('end-next-time');
+
+  let text='';
+  if(isFinal) {
+    text=`ご覧のように${s1}対${s2}で　${wname}が勝ち、優勝いたしました。\n${pitcherName}投手の合計投球数は${pitchTotal}球です。\nなおこの試合の終了時間は${endTime(v('end-time'))}です。\nこの後、表彰式/閉会式を行いますので準備が整いますまで今しばらくお待ちください。`;
+  } else {
+    text=`ご覧のように${s1}対${s2}で　${wname}が勝ちました。\n${pitcherName}投手の合計投球数は${pitchTotal}球です。\nなおこの試合の終了時間は${endTime(v('end-time'))}です。`;
+    if(nextGame) text+=`\n第${nextGame}試合開始まで今しばらくお待ちください。`;
+    if(nextTime) text+=`\n第${nextGame||'○'}試合は${endTime(nextTime)}開始の予定でございます。`;
+  }
+  document.getElementById('end-text').textContent=text;
+  document.getElementById('end-announce').style.display='block';
+}
+
+function buildTiebreak() {
+  const teamId=v('tb-team');
+  let teamLine='';
+  if(teamId==='1') teamLine=`${S.setup.firstTeam||'○○ボーイズ'}の攻撃は`;
+  if(teamId==='2') teamLine=`${S.setup.secondTeam||'○○ボーイズ'}の攻撃は`;
+
+  const allP=[...S.players[1],...S.players[2]];
+  const getP=(id)=>allP.find(p=>p.id==id);
+  const p3=getP(v('tb-3rd')), p2=getP(v('tb-2nd')), p1=getP(v('tb-1st')), pb=getP(v('tb-batter'));
+  const n=(p)=>p?`${p.name}君、背番号『${p.num}』`:'○○君、背番号『○』';
+  const bat=pb?`バッターは${v('tb-bat-order')}　${pb.pos}　${pb.name}君`:`バッターは${v('tb-bat-order')}　○○君`;
+
+  const text=`ただいまより大会規定により、タイブレークをおこないます。\nタイブレークは１アウト満塁の状態からおこないます。\n${teamLine}\nサードランナー　${n(p3)}　セカンドランナー　${n(p2)}\nファーストランナー　${n(p1)}　${bat}`;
+  document.getElementById('tb-text').textContent=text;
+  document.getElementById('tb-announce').style.display='block';
+}
+
+// ===== MISC =====
+const MISC_ITEMS = [
+  {label:'熱中症注意', text:'ご来場の皆様にお願いをいたします。\n本日は、日差しが強く、気温もかなり高くなっておりますので\nこまめに水分補給を行うなど熱中症には十分ご注意ください。'},
+  {label:'熱中症警戒アラート', text:'ご来場の皆様にお願いをいたします。\n本日は熱中症警戒アラートが発令されております。こまめに水分や塩分を補給するなど\n熱中症予防行動を徹底し、周りの人たちにもお声がけ下さるようお願いいたします。\n気分のすぐれない方は係員にお知らせください。'},
+  {label:'ファウルボール注意', text:'ご来場の皆様にお願いをいたします。\n試合中、スタンドに入りますファウルボールは大変危険でございます。\n打球の行方には十分ご注意ください。'},
+  {label:'SNS利用（ロング）', text:'ご来場の皆様にお願いをいたします。\n本大会に参加する当連盟所属チームの選手・関係者を撮影されます際には\n被写体となる方の肖像権にご配慮いただき、個人が特定されるような方法で\n撮影されないようにお願いいたします。\nまた、試合内容をSNSなどで公表される際には、選手・関係者の肖像権、および\nプライバシーにご配慮いただき、これらの無断公表とならないようにお願いします。'},
+  {label:'SNS利用（ショート）', text:'ご来場の皆様にSNSのご利用についてお願いをいたします。\nボーイズリーグに所属する選手や関係者を許可なく撮影して\nその写真や動画等を無断で公表する行為は法律上、許されておりません。\nルールを守って応援いただきますよう皆様のご理解とご協力をお願いいたします。\nまた、球場内で三脚を固定しての動画撮影は禁止とさせていただきます。'},
+  {label:'雨天中断', text:'ご覧のような天候の為、試合を一時中断いたします。'},
+  {label:'雨天中断（激しい雨）', text:'ご覧のように雨が激しく降ってまいりましたので、試合を一時中断致します。'},
+  {label:'雷による中断', text:'お知らせいたします。雷雲が近づいている為、試合を一時中断いたします。\nスタンドの皆様も安全な場所に避難をお願い致します。'},
+  {label:'グラウンド整備', text:'ただいまからグラウンドの整備をおこないます。今しばらくお待ちください。\nグラウンドの整備が済み次第、試合再開の予定ですので今しばらくお待ちください。'},
+  {label:'スコアボード不具合', text:'ただいまスコアボードの不具合により一部、表示できない部分がございます。\n悪しからずご了承ください。'},
+  {label:'給水タイム（5分）', text:'ただいまから5分間のクーリングタイムを取ります。\n（残り1分でアナウンス：クーリングタイム残り1分です。）\nクーリングタイム終了です。'},
+  {label:'給水タイム（10分）', text:'ただいまから10分間のクーリングタイムを取ります。\n（残り2分でアナウンス：クーリングタイム残り2分です。）\nクーリングタイム終了です。'},
+  {label:'外野ノック禁止', text:'　　　　　ボーイズ、芝生の上からのノックは禁止となっております。\n芝生の上からのノックはおやめください。'},
+  {label:'芝生でのバット使用禁止', text:'　　　　　ボーイズ、芝生の上でのバットの使用は禁止となっております。\n芝生の上でのバットの使用はおやめください。'},
+];
+
+function buildMiscGrid() {
+  document.getElementById('misc-grid').innerHTML=MISC_ITEMS.map((item,i)=>`
+    <div class="quick-btn" onclick="showMisc(${i})">
+      <div class="qlabel">📢 クイックアナウンス</div>
+      ${item.label}
+    </div>`).join('');
+}
+
+function showMisc(i) {
+  document.getElementById('misc-text').textContent=MISC_ITEMS[i].text;
+  document.getElementById('misc-announce').style.display='block';
+}
+
+// ===== COPY =====
+function copyEl(id) {
+  const text=document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(()=>{
+    const t=document.getElementById('toast');
+    t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),2000);
+  });
+}
+
+// ===== INIT =====
+document.getElementById('s_date').value=new Date().toISOString().split('T')[0];
+buildMiscGrid();
+</script>
+</body>
+</html>
